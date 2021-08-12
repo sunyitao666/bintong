@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>bintong</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios@0.21.1/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.1.2/dist/echarts.min.js"></script>
+</head>
+<body>
+<div id="app">
+    <input type="button" value="插入10条" @click="handleInsert(10);"/>
+    <input type="button" value="插入10000条" @click="handleInsert(10000);"/>
+    <div>数据量: {{ data_number }}</div>
+    <div id="main" style="width: 500px;height: 300px;"></div>
+</div>
+<script type="text/javascript">
+
+    var app = new Vue({
+        el: '#app',
+        data: {
+            data_number: 0,
+            timer: null,
+        },
+        computed: {
+            chart: function () {
+                return echarts.init(document.getElementById('main'))
+            }
+        },
+        methods: {
+            refresh: function () {
+                let self = this;
+                if (this.timer) clearTimeout(this.timer)
+                axios.get('/select_by_paramid/', {
+                    params: {}
+                }).then(function (response) {
+                    self.chart.setOption({
+                        dataset: {
+                            source: response.data.data_list,
+                        },
+                        xAxis: {
+                            type: 'category',
+                        },
+                        yAxis: {
+                            type: 'value',
+                            scale: true,
+                        },
+                        series: [{
+                            type: 'line',
+                            smooth: true,
+                            encode: {
+                                x: 0,
+                                y: 2
+                            }
+                        }]
+                    });
+                }).catch(function (error) {
+                    console.log(error);
+                }).finally(function () {
+                    self.timer = setTimeout(function () {
+                        self.refresh()
+                    }, 10000)
+                })
+            },
+            initData() {
+                let self = this;
+                axios.get('/index/', {
+                    params: {}
+                }).then(function (response) {
+                    self.data_number = response.data.data_number;
+                }).catch(function (error) {
+                    console.log(error);
+                    self.data_number = 'NaN'
+                });
+            },
+            /**
+             * 插入数据
+             * @param data_number
+             */
+            handleInsert(data_number) {
+                let self = this;
+                axios.get('/insert/', {
+                    params: {data_number: data_number}
+                }).then(function (response) {
+                    self.initData()
+                    self.refresh()
+                }).catch(function (error) {
+                    console.log(error);
+                    self.data_number = 'NaN'
+                });
+            }
+        },
+        mounted: function () {
+            this.initData()
+            this.$nextTick(function () {
+                this.refresh()
+            })
+        },
+        beforeDestroy: function () {
+            if (this.timer) clearTimeout(this.timer)
+        }
+    })
+</script>
+</body>
+</html>

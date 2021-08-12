@@ -15,7 +15,10 @@ Including another URLconf
 """
 from django.urls import path
 from demo import views as demo_views
-from django.conf.urls import url
+import os
+from django.conf.urls import url, include
+from django.views import static
+from BinTong import settings
 
 urlpatterns = [
     url('^insert/$', demo_views.insert, name="insert"),
@@ -23,4 +26,10 @@ urlpatterns = [
     url('^select_by_paramid/$', demo_views.select_by_paramid, name="select_by_paramid"),
     # path('admin/', admin.site.urls),
 
+]
+
+urlpatterns += [
+    url(r'^index.html', static.serve,
+        {'path': os.path.join(settings.BASE_DIR, 'dist', 'index.html'),
+         'document_root': os.path.join(settings.BASE_DIR, 'dist'), 'show_indexes': True}),
 ]

@@ -20,7 +20,7 @@ def insert(request):
     :param request:
     :return:
     '''
-    data_number = int(request.GET.get('data_number', 20000))
+    data_number = int(request.GET.get('data_number', 10000))
     new_data = np.random.rand(data_number, DIM)
     query_list = []
     start = time.time()
